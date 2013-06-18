@@ -1,4 +1,4 @@
-KISSY.add(function (S, Base, Node, Dom, Sizzle) {
+KISSY.add(function (S, Base, Node, Dom, Event, Sizzle) {
 
 	"use strict";
 
@@ -227,13 +227,13 @@ KISSY.add(function (S, Base, Node, Dom, Sizzle) {
 		}
 	});
 
-	S.mix(S.NodeList, {
+	S.mix(S.NodeList.prototype, {
 		/**
 		 * 是否是有效的表单元素（除button与submit外）
 		 * S.Node.isFormElem
 		 */
 		isFormElem: function() {
-			var tagName = this.get('tagName').toUpperCase(),
+			var tagName = this.getDOMNode().tagName.toUpperCase(),
 				type = this.attr('type');
 				
 			return (tagName === 'INPUT' && type !== 'button' && type !== 'submit') || tagName === 'SELECT' || tagName === 'TEXTAREA';
@@ -251,9 +251,6 @@ KISSY.add(function (S, Base, Node, Dom, Sizzle) {
 			return this.attr('value');
 		}
 	});
-
-	debugger;
-
 	
 	/**
 	 * 错误信息模板
@@ -879,9 +876,10 @@ KISSY.add(function (S, Base, Node, Dom, Sizzle) {
 		 * @private
 		 */
 		_bindElemEvent: function(el) {
-			var that = this;
-				tagName = el.get('tagName').toUpperCase(),
+			var that = this,
+				tagName = el.getDOMNode().tagName.toUpperCase(),
 				type = el.attr('type');
+
 				
 			if (type !== 'checkbox' && type !== 'radio' && type !== 'hidden') {
 				if (tagName === 'SELECT') {
@@ -895,13 +893,17 @@ KISSY.add(function (S, Base, Node, Dom, Sizzle) {
 				}
 				that.Events = that.Events.concat([
 					el.on('focus', S.bind(that._handleFocus, that)),
-					el.on('blur', S.bind(that._handleBlur, that))
+					el.on('blur', that._handleBlur, that)
 				]);
 			} else if (type === 'checkbox') {
 				that.Events = that.Events.concat([
 					that._getCheckboxElems(el).on('click', S.bind(that._handleClick, that))
 				]);
 			}
+
+			Event.on('#h5input', 'blur', function() {
+				console.log('blur');
+			});
 			
 			return el;
 		},
@@ -935,6 +937,7 @@ KISSY.add(function (S, Base, Node, Dom, Sizzle) {
 		 */
 		_handleBlur: function(e) {
 			var that = this;
+			debugger;
 			that.validate(e.target);
 			that.togglePlaceholder(e.target, true);
 			that.toggleError(e.target);
@@ -1297,5 +1300,5 @@ KISSY.add(function (S, Base, Node, Dom, Sizzle) {
 	return Html5form;
 
 }, {
-	requires: ['base','node','dom','sizzle']
+	requires: ['base','node','dom','event', 'sizzle']
 });
